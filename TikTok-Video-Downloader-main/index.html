@@ -1,0 +1,2184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Video Downloader</title>
+  <meta name="description" content="Download TikTok videos without watermark in HD quality instantly. Free, fast, and no app installation required.">
+  <meta property="og:title" content="TikTok Video Downloader - No Watermark HD">
+  <meta property="og:description" content="Paste your TikTok link and download HD videos without watermark instantly.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Google Fonts: Poppins & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       1. CSS RESET & NEON COLOR PALETTE
+       ========================================================================== */
+    :root {
+      --bg-dark: #070312;
+      --bg-secondary: #0f0724;
+      --bg-card: rgba(18, 10, 36, 0.72);
+      --bg-card-hover: rgba(26, 15, 52, 0.85);
+      
+      /* Neon Core Colors */
+      --neon-cyan: #00f0ff;
+      --neon-pink: #ff00aa;
+      --neon-purple: #a855f7;
+      --neon-blue: #3b82f6;
+      --neon-red: #ff3366;
+      --neon-green: #10b981;
+
+      /* Text Colors */
+      --text-white: #ffffff;
+      --text-muted: #a3a0c2;
+      --text-dim: #6b668f;
+
+      /* Border and Glows */
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --border-glow: rgba(0, 240, 255, 0.35);
+      --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.45), 0 0 40px rgba(0, 240, 255, 0.2);
+      --glow-pink: 0 0 20px rgba(255, 0, 170, 0.45), 0 0 40px rgba(255, 0, 170, 0.2);
+      --glow-purple: 0 0 20px rgba(168, 85, 247, 0.45), 0 0 40px rgba(168, 85, 247, 0.2);
+      --glow-red: 0 0 20px rgba(255, 51, 102, 0.5), 0 0 40px rgba(255, 51, 102, 0.2);
+      
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-white);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    /* ==========================================================================
+       2. CURSOR-FOLLOWING GLOW EFFECT
+       ========================================================================== */
+    .cursor-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(0, 240, 255, 0.16) 0%,
+        rgba(255, 0, 170, 0.10) 35%,
+        rgba(168, 85, 247, 0.05) 60%,
+        transparent 75%
+      );
+      filter: blur(40px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.5s ease;
+      will-change: transform;
+    }
+
+    /* Ambient background Orbs */
+    .ambient-glow {
+      position: fixed;
+      width: 620px;
+      height: 620px;
+      border-radius: 50%;
+      filter: blur(140px);
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.3;
+      animation: floatOrb 18s ease-in-out infinite alternate;
+    }
+
+    .glow-top-left {
+      top: -150px;
+      left: -150px;
+      background: radial-gradient(circle, var(--neon-pink) 0%, rgba(255, 0, 170, 0) 70%);
+    }
+
+    .glow-bottom-right {
+      bottom: -150px;
+      right: -150px;
+      background: radial-gradient(circle, var(--neon-cyan) 0%, rgba(0, 240, 255, 0) 70%);
+      animation-delay: -9s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 40px) scale(1.15); }
+      100% { transform: translate(-40px, 70px) scale(0.92); }
+    }
+
+    /* ==========================================================================
+       3. NEON PARTICLE CANVAS
+       ========================================================================== */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    /* Container */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ==========================================================================
+       4. HEADER & LOGO
+       ========================================================================== */
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0 28px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+      position: relative;
+      transition: var(--transition-fast);
+    }
+
+    .logo-container:hover .logo-icon {
+      transform: rotate(-6deg) scale(1.08);
+      box-shadow: 0 0 25px rgba(255, 0, 170, 0.7);
+    }
+
+    .logo-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    }
+
+    .logo-text {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .logo-text span {
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-creator {
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-purple) 50%, var(--neon-cyan) 100%);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 20px rgba(255, 0, 170, 0.8), 0 0 40px rgba(168, 85, 247, 0.5);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      white-space: nowrap;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      animation: creatorPillGlow 3s ease-in-out infinite alternate;
+      transition: var(--transition-fast);
+    }
+
+    .header-creator:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 0, 170, 0.95), 0 0 60px rgba(0, 240, 255, 0.7);
+    }
+
+    @keyframes creatorPillGlow {
+      0% {
+        box-shadow: 0 0 18px rgba(255, 0, 170, 0.75), 0 0 35px rgba(168, 85, 247, 0.45);
+        transform: scale(1);
+      }
+      100% {
+        box-shadow: 0 0 28px rgba(255, 0, 170, 0.95), 0 0 50px rgba(0, 240, 255, 0.7), 0 0 10px rgba(255, 255, 255, 0.5);
+        transform: scale(1.03);
+      }
+    }
+
+    /* ==========================================================================
+       5. HERO SECTION & TYPING ANIMATION
+       ========================================================================== */
+    .hero-section {
+      text-align: center;
+      margin: 28px 0 36px;
+      width: 100%;
+    }
+
+    .pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #e9d5ff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+    }
+
+    .pill-tag .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--neon-cyan);
+      box-shadow: 0 0 10px var(--neon-cyan);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5.5vw, 3.4rem);
+      font-weight: 900;
+      line-height: 1.18;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      min-height: 2.4em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-purple) 50%, var(--neon-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.35));
+    }
+
+    /* Typing cursor */
+    .typing-cursor {
+      display: inline-block;
+      color: var(--neon-cyan);
+      font-weight: 300;
+      animation: blinkCursor 0.75s step-start infinite;
+      margin-left: 2px;
+      text-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .hero-subtitle {
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      font-weight: 400;
+    }
+
+    /* ==========================================================================
+       6. INPUT SECTION (GLASSMORPHISM & ANIMATED BORDER)
+       ========================================================================== */
+    .input-wrapper-card {
+      width: 100%;
+      max-width: 780px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+
+    .input-wrapper-card::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-cyan));
+      z-index: -1;
+      opacity: 0.25;
+      filter: blur(8px);
+      transition: opacity 0.4s ease, filter 0.4s ease;
+    }
+
+    .input-wrapper-card:focus-within::before,
+    .input-wrapper-card:hover::before {
+      opacity: 0.8;
+      filter: blur(14px);
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .input-icon-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-left: 14px;
+      color: var(--neon-cyan);
+    }
+
+    .input-icon-box svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1.05rem;
+      padding: 14px 8px;
+    }
+
+    .url-input::placeholder {
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==========================================================================
+       7. BUTTONS & RIPPLE EFFECT
+       ========================================================================== */
+    .btn {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden; /* Essential for ripple effect */
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Ripple element spawned on click */
+    .btn-ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, rgba(0, 240, 255, 0.4) 60%, transparent 100%);
+      transform: scale(0);
+      animation: rippleAnimation 0.6s cubic-bezier(0, 0, 0.2, 1);
+      pointer-events: none;
+    }
+
+    @keyframes rippleAnimation {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    .btn-paste {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 13px 18px;
+    }
+
+    .btn-paste:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-clear {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim);
+      border: none;
+      padding: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-clear:hover {
+      background: rgba(255, 51, 102, 0.2);
+      color: var(--neon-red);
+    }
+
+    .btn-download-primary {
+      background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-purple) 100%);
+      color: #ffffff;
+      padding: 13px 28px;
+      box-shadow: var(--glow-pink);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-download-primary:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 25px rgba(255, 0, 170, 0.7), 0 0 50px rgba(168, 85, 247, 0.4);
+    }
+
+    .input-hints {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 14px;
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    .input-hints span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ==========================================================================
+       8. ERROR ALERT
+       ========================================================================== */
+    .error-container {
+      width: 100%;
+      max-width: 780px;
+      margin-top: 20px;
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .error-card {
+      background: rgba(255, 51, 102, 0.1);
+      border: 1px solid rgba(255, 51, 102, 0.4);
+      border-radius: 16px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ffd6df;
+      box-shadow: var(--glow-red);
+    }
+
+    .error-card svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      color: var(--neon-red);
+    }
+
+    .error-message {
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       9. LOADING SPINNER (MULTI-LAYER NEON RING)
+       ========================================================================== */
+    .loader-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 48px 0;
+      gap: 20px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .neon-spinner {
+      position: relative;
+      width: 76px;
+      height: 76px;
+    }
+
+    .spinner-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: var(--neon-cyan);
+      box-shadow: 0 0 16px var(--neon-cyan);
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+
+    .spinner-ring:nth-child(2) {
+      inset: 6px;
+      border-top-color: var(--neon-pink);
+      box-shadow: 0 0 16px var(--neon-pink);
+      animation: spinReverse 1.5s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+
+    .spinner-ring:nth-child(3) {
+      inset: 12px;
+      border-top-color: var(--neon-purple);
+      box-shadow: 0 0 16px var(--neon-purple);
+      animation: spin 1.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+
+    .spinner-center {
+      position: absolute;
+      inset: 22px;
+      background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes spinReverse {
+      0% { transform: rotate(360deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .loading-text {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-white);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .loading-subtext {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+
+    /* ==========================================================================
+       10. RESULT CARD WITH 3D TILT EFFECT
+       ========================================================================== */
+    .result-container {
+      width: 100%;
+      max-width: 780px;
+      margin-top: 36px;
+      display: none;
+      perspective: 1200px; /* Perspective for 3D tilt */
+      animation: slideUpFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUpFade {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .result-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 35px rgba(0, 240, 255, 0.18);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.15s ease-out, box-shadow 0.25s ease;
+      will-change: transform;
+    }
+
+    /* 3D dynamic light sheen overlay */
+    .result-card-sheen {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: 26px;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 2;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 26px;
+      align-items: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Thumbnail Box */
+    .thumb-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      max-height: 380px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      background-color: #0b0518;
+      transform: translateZ(25px); /* 3D layer pop */
+    }
+
+    .thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .thumb-wrapper:hover .thumb-img {
+      transform: scale(1.05);
+    }
+
+    .thumb-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      color: var(--neon-cyan);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .thumb-play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      border: 2px solid var(--neon-cyan);
+      box-shadow: 0 0 20px var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      overflow: hidden;
+    }
+
+    .thumb-play-btn:hover {
+      transform: translate(-50%, -50%) scale(1.1);
+      background: rgba(0, 240, 255, 0.35);
+    }
+
+    /* Video Info Section */
+    .video-info {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transform: translateZ(20px); /* 3D layer pop */
+    }
+
+    .author-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--neon-pink);
+      box-shadow: 0 0 12px rgba(255, 0, 170, 0.45);
+      background-color: #241242;
+    }
+
+    .author-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .author-name {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .verified-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--neon-cyan);
+    }
+
+    .author-handle {
+      font-size: 0.86rem;
+      color: var(--neon-cyan);
+      font-weight: 500;
+    }
+
+    .video-title {
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      font-weight: 400;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
+    }
+
+    /* Video Statistics Row */
+    .video-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 5px 12px;
+      border-radius: 8px;
+    }
+
+    .stat-chip svg {
+      width: 14px;
+      height: 14px;
+      color: var(--neon-purple);
+    }
+
+    /* Download Actions Grid */
+    .download-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .btn-download-hd {
+      width: 100%;
+      background: linear-gradient(135deg, var(--neon-pink) 0%, var(--neon-cyan) 100%);
+      color: #000000;
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 15px 24px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), 0 0 35px rgba(255, 0, 170, 0.3);
+      border: none;
+    }
+
+    .btn-download-hd:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.7), 0 0 50px rgba(255, 0, 170, 0.5);
+    }
+
+    .btn-download-hd svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .secondary-download-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-download-sd {
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      color: var(--neon-cyan);
+      padding: 12px 16px;
+    }
+
+    .btn-download-sd:hover {
+      background: rgba(0, 240, 255, 0.22);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .btn-download-audio {
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #e9d5ff;
+      padding: 12px 16px;
+    }
+
+    .btn-download-audio:hover {
+      background: rgba(168, 85, 247, 0.22);
+      box-shadow: var(--glow-purple);
+    }
+
+    .btn-copy-link {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      padding: 11px 16px;
+      width: 100%;
+    }
+
+    .btn-copy-link:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
+
+    /* Embedded Video Preview Modal */
+    .preview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .preview-content {
+      position: relative;
+      max-width: 420px;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
+    }
+
+    .preview-video {
+      width: 100%;
+      max-height: 75vh;
+      display: block;
+      background: #000;
+    }
+
+    .preview-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      z-index: 2;
+    }
+
+    .preview-close:hover {
+      background: var(--neon-red);
+      border-color: var(--neon-red);
+    }
+
+    /* ==========================================================================
+       11. HOW TO USE & FEATURES SECTION
+       ========================================================================== */
+    .info-section {
+      width: 100%;
+      max-width: 780px;
+      margin-top: 64px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 24px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .section-title svg {
+      color: var(--neon-cyan);
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .step-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 24px 18px;
+      text-align: center;
+      position: relative;
+      transition: var(--transition-fast);
+    }
+
+    .step-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(0, 240, 255, 0.35);
+      transform: translateY(-4px);
+    }
+
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--neon-pink), var(--neon-cyan));
+      color: #000000;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    }
+
+    .step-heading {
+      font-size: 0.98rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       12. TOAST NOTIFICATION
+       ========================================================================== */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(15, 8, 32, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+      padding: 12px 24px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+      pointer-events: none;
+    }
+
+    .toast-container.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast-icon {
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+    }
+
+    /* ==========================================================================
+       13. FOOTER
+       ========================================================================== */
+    footer {
+      width: 100%;
+      max-width: 780px;
+      margin-top: 50px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .footer-disclaimer {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .footer-sub {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* ==========================================================================
+       14. RESPONSIVE DESIGN (MOBILE / TABLET)
+       ========================================================================== */
+    @media (max-width: 768px) {
+      .app-container {
+        padding: 16px 14px 60px;
+      }
+
+      .logo-text {
+        font-size: 1.15rem;
+      }
+
+      .header-creator {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+      }
+
+      .cursor-glow {
+        display: none; /* Disable cursor follower on touch devices */
+      }
+
+      .hero-title {
+        min-height: 3em;
+      }
+
+      .input-wrapper-card {
+        padding: 8px;
+        border-radius: 20px;
+      }
+
+      .input-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .input-icon-box {
+        display: none;
+      }
+
+      .url-input {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .action-buttons {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1.6fr;
+        gap: 8px;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px 14px;
+        font-size: 0.9rem;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .thumb-wrapper {
+        max-height: 260px;
+        aspect-ratio: 16 / 9;
+        margin: 0 auto;
+      }
+
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .secondary-download-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo-icon {
+        width: 38px;
+        height: 38px;
+      }
+      .logo-text {
+        font-size: 0.98rem;
+      }
+      .header-creator {
+        font-size: 0.72rem;
+        padding: 5px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Cursor-Following Glow Element -->
+  <div id="cursorGlow" class="cursor-glow"></div>
+
+  <!-- Ambient Neon Orbs -->
+  <div class="ambient-glow glow-top-left"></div>
+  <div class="ambient-glow glow-bottom-right"></div>
+
+  <!-- 2. Interactive Neon Particle Background Canvas -->
+  <canvas id="particles-canvas"></canvas>
+
+  <div class="app-container">
+
+    <!-- Header & Logo -->
+    <header>
+      <div class="logo-container" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <div class="logo-icon">
+          <!-- TikTok Musical Note SVG -->
+          <svg viewBox="0 0 24 24">
+            <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743 2.9 2.9 0 0 1 2.316-4.644c.429 0 .84.093 1.21.261V9.458a6.347 6.347 0 0 0-1.21-.116 6.346 6.346 0 0 0-6.343 6.347 6.347 6.347 0 0 0 6.343 6.347 6.347 6.347 0 0 0 6.347-6.347V8.718a8.216 8.216 0 0 0 4.753 1.503V6.776a4.757 4.757 0 0 1-1-.09z"/>
+          </svg>
+        </div>
+        <div class="logo-text">TikTok <span>Video Downloader</span></div>
+      </div>
+      <div class="header-creator">Created by SammiiGot!</div>
+    </header>
+
+    <!-- Hero Section with Typing Animation Heading -->
+    <section class="hero-section">
+      <h1 class="hero-title">
+        Download TikTok Videos<br>
+        <span class="gradient-text" id="typewriterText">Without Watermark</span><span class="typing-cursor">|</span>
+      </h1>
+      <p class="hero-subtitle">
+        Paste your TikTok link below to fetch and download high definition video without logos or watermarks in seconds.
+      </p>
+    </section>
+
+    <!-- Input Section -->
+    <div class="input-wrapper-card">
+      <div class="input-group">
+        <div class="input-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+        </div>
+
+        <input 
+          type="text" 
+          id="urlInput" 
+          class="url-input" 
+          placeholder="Paste TikTok URL here (e.g., https://www.tiktok.com/@user/video/...)" 
+          autocomplete="off"
+          spellcheck="false"
+        >
+
+        <!-- Clear input button -->
+        <button id="clearBtn" class="btn-clear" title="Clear input" aria-label="Clear input">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <div class="action-buttons">
+          <button id="pasteBtn" class="btn btn-paste" title="Paste from clipboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            </svg>
+            <span>Paste</span>
+          </button>
+
+          <button id="downloadBtn" class="btn btn-download-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Download</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert Container -->
+    <div id="errorContainer" class="error-container">
+      <div class="error-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div id="errorMessage" class="error-message">Invalid TikTok link. Please verify the URL.</div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loaderContainer" class="loader-container">
+      <div class="neon-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-center"></div>
+      </div>
+      <div class="loading-text">Fetching HD Video Stream...</div>
+      <div class="loading-subtext">Removing TikTok watermarks & preparing links</div>
+    </div>
+
+    <!-- Result Card (with 3D Tilt Effect on mousemove) -->
+    <div id="resultContainer" class="result-container">
+      <div id="resultCard" class="result-card">
+        <!-- 3D dynamic light sheen overlay -->
+        <div id="resultCardSheen" class="result-card-sheen"></div>
+
+        <div class="result-grid">
+          <!-- Thumbnail with Play Overlay -->
+          <div class="thumb-wrapper">
+            <img id="resultThumb" class="thumb-img" src="" alt="TikTok Video Thumbnail">
+            <div class="thumb-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+              <span>HD Ready</span>
+            </div>
+            <!-- Click to preview in modal -->
+            <button id="playPreviewBtn" class="thumb-play-btn" title="Watch preview">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Video Details and Download Options -->
+          <div class="video-info">
+            <!-- Author Bar -->
+            <div class="author-bar">
+              <img id="resultAuthorAvatar" class="author-avatar" src="" alt="Author Avatar">
+              <div class="author-details">
+                <div class="author-name">
+                  <span id="resultAuthorNick">TikTok Creator</span>
+                  <svg class="verified-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <div id="resultAuthorHandle" class="author-handle">@username</div>
+              </div>
+            </div>
+
+            <!-- Video Title -->
+            <p id="resultTitle" class="video-title">TikTok video description</p>
+
+            <!-- Video Stats Chips -->
+            <div class="video-stats">
+              <div class="stat-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span id="statViews">0</span>
+              </div>
+              <div class="stat-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+                <span id="statLikes">0</span>
+              </div>
+              <div class="stat-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+                <span id="statComments">0</span>
+              </div>
+            </div>
+
+            <!-- Download Buttons Grid -->
+            <div class="download-actions">
+              <!-- Big HD Button -->
+              <a id="btnDownloadHd" href="#" class="btn btn-download-hd" download="tiktok_no_watermark_hd.mp4" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Download HD (No Watermark)</span>
+              </a>
+
+              <!-- Secondary Row: SD and Audio MP3 -->
+              <div class="secondary-download-row">
+                <a id="btnDownloadSd" href="#" class="btn btn-download-sd" download="tiktok_video_sd.mp4" target="_blank" rel="noopener noreferrer">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Download SD</span>
+                </a>
+
+                <a id="btnDownloadAudio" href="#" class="btn btn-download-audio" download="tiktok_audio.mp3" target="_blank" rel="noopener noreferrer">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                  </svg>
+                  <span>Download MP3</span>
+                </a>
+              </div>
+
+              <!-- Copy Direct Link Button -->
+              <button id="btnCopyDirectLink" class="btn btn-copy-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Copy Direct Video Link</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How To Use Guide -->
+    <section class="info-section">
+      <h2 class="section-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>How to Download TikTok Videos</span>
+      </h2>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3 class="step-heading">Copy Video Link</h3>
+          <p class="step-desc">Open TikTok on your app or browser, find your video, tap Share and select "Copy Link".</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3 class="step-heading">Paste Link Here</h3>
+          <p class="step-desc">Paste the link into the neon input box above and hit the glowing "Download" button.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3 class="step-heading">Save Clean HD</h3>
+          <p class="step-desc">Choose HD or SD video with watermark removed, or extract the audio MP3 file directly.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p class="footer-sub">This tool is not affiliated with, endorsed, or sponsored by TikTok or ByteDance Ltd.</p>
+    </footer>
+
+  </div>
+
+  <!-- Video Preview Modal -->
+  <div id="previewModal" class="preview-modal">
+    <div class="preview-content">
+      <button id="previewCloseBtn" class="preview-close" aria-label="Close Preview">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <video id="modalVideoPlayer" class="preview-video" controls playsinline preload="metadata"></video>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="toast-container">
+    <div class="toast-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <span id="toastMessage">Copied to clipboard!</span>
+  </div>
+
+  <!-- ==========================================================================
+       JAVASCRIPT LOGIC & ADVANCED INTERACTIVE EFFECTS
+       ========================================================================== -->
+  <script>
+    /**
+     * TIKTOK VIDEO DOWNLOADER (Single File Implementation)
+     * Features:
+     * 1. Cursor-following glow effect (radial gradient physics follower)
+     * 2. Interactive neon particle background canvas with constellation connections & mouse repulsion
+     * 3. Button click ripple wave effect
+     * 4. Typing animation on hero heading with rotating phrases
+     * 5. 3D tilt effect on result card (mousemove) with dynamic light reflection
+     * 6. Multi-proxy video extraction & clean download handling
+     */
+
+    // --- DOM Elements ---
+    const urlInput = document.getElementById('urlInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    const loaderContainer = document.getElementById('loaderContainer');
+    const errorContainer = document.getElementById('errorContainer');
+    const errorMessage = document.getElementById('errorMessage');
+    const resultContainer = document.getElementById('resultContainer');
+    const resultCard = document.getElementById('resultCard');
+    const resultCardSheen = document.getElementById('resultCardSheen');
+
+    // Result Card Details
+    const resultThumb = document.getElementById('resultThumb');
+    const resultAuthorAvatar = document.getElementById('resultAuthorAvatar');
+    const resultAuthorNick = document.getElementById('resultAuthorNick');
+    const resultAuthorHandle = document.getElementById('resultAuthorHandle');
+    const resultTitle = document.getElementById('resultTitle');
+    const statViews = document.getElementById('statViews');
+    const statLikes = document.getElementById('statLikes');
+    const statComments = document.getElementById('statComments');
+
+    const btnDownloadHd = document.getElementById('btnDownloadHd');
+    const btnDownloadSd = document.getElementById('btnDownloadSd');
+    const btnDownloadAudio = document.getElementById('btnDownloadAudio');
+    const btnCopyDirectLink = document.getElementById('btnCopyDirectLink');
+    const playPreviewBtn = document.getElementById('playPreviewBtn');
+
+    // Modal elements
+    const previewModal = document.getElementById('previewModal');
+    const previewCloseBtn = document.getElementById('previewCloseBtn');
+    const modalVideoPlayer = document.getElementById('modalVideoPlayer');
+
+    // Toast
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+
+    // Current video state
+    let currentVideoData = null;
+
+    // ==========================================================================
+    // 1. CURSOR-FOLLOWING GLOW EFFECT
+    // ==========================================================================
+    const cursorGlow = document.getElementById('cursorGlow');
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let glowX = mouseX;
+    let glowY = mouseY;
+    let isCursorOnWindow = false;
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (!isCursorOnWindow) {
+        isCursorOnWindow = true;
+        cursorGlow.style.opacity = '1';
+      }
+    });
+
+    document.addEventListener('mouseleave', () => {
+      isCursorOnWindow = false;
+      cursorGlow.style.opacity = '0';
+    });
+
+    document.addEventListener('mouseenter', () => {
+      isCursorOnWindow = true;
+      cursorGlow.style.opacity = '1';
+    });
+
+    // Smoothly interpolate cursor glow position
+    function updateCursorGlow() {
+      glowX += (mouseX - glowX) * 0.12;
+      glowY += (mouseY - glowY) * 0.12;
+      cursorGlow.style.transform = `translate(${glowX}px, ${glowY}px) translate(-50%, -50%)`;
+      requestAnimationFrame(updateCursorGlow);
+    }
+    requestAnimationFrame(updateCursorGlow);
+
+    // ==========================================================================
+    // 2. NEON PARTICLE BACKGROUND CANVAS
+    // ==========================================================================
+    (function initNeonParticles() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      let width, height;
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      const neonPalette = [
+        '#00f0ff', // cyan
+        '#ff00aa', // pink
+        '#a855f7', // purple
+        '#3b82f6', // blue
+        '#00ff9d'  // neon mint
+      ];
+
+      const count = Math.min(width > 768 ? 55 : 28, 70);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.65,
+          vy: (Math.random() - 0.5) * 0.65,
+          radius: Math.random() * 2 + 1,
+          color: neonPalette[Math.floor(Math.random() * neonPalette.length)],
+          alpha: Math.random() * 0.6 + 0.4,
+          glowSize: Math.random() * 10 + 6
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Update and draw particles
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+
+          // Gentle mouse avoidance / interaction
+          if (isCursorOnWindow) {
+            const dx = p.x - mouseX;
+            const dy = p.y - mouseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120 && dist > 0) {
+              const force = (120 - dist) / 120;
+              p.x += (dx / dist) * force * 1.5;
+              p.y += (dy / dist) * force * 1.5;
+            }
+          }
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < -20) p.x = width + 20;
+          if (p.x > width + 20) p.x = -20;
+          if (p.y < -20) p.y = height + 20;
+          if (p.y > height + 20) p.y = -20;
+
+          // Draw Glowing Circle
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.shadowBlur = p.glowSize;
+          ctx.shadowColor = p.color;
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.alpha;
+          ctx.fill();
+          ctx.restore();
+
+          // Connect nearby particles with neon web lines
+          for (let j = i + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const dx = p.x - p2.x;
+            const dy = p.y - p2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 125) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.strokeStyle = p.color;
+              ctx.globalAlpha = (1 - dist / 125) * 0.22;
+              ctx.lineWidth = 0.8;
+              ctx.shadowBlur = 6;
+              ctx.shadowColor = p.color;
+              ctx.stroke();
+              ctx.restore();
+            }
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+
+    // ==========================================================================
+    // 3. BUTTON CLICK RIPPLE EFFECT
+    // ==========================================================================
+    function createRipple(e) {
+      const button = e.currentTarget;
+
+      // Clean old ripples inside button
+      const oldRipple = button.querySelector('.btn-ripple');
+      if (oldRipple) oldRipple.remove();
+
+      const rect = button.getBoundingClientRect();
+      const circle = document.createElement('span');
+      circle.classList.add('btn-ripple');
+
+      const diameter = Math.max(rect.width, rect.height);
+      const radius = diameter / 2;
+
+      // Handle touch or mouse coordinates
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || rect.left + radius;
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || rect.top + radius;
+
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${clientX - rect.left - radius}px`;
+      circle.style.top = `${clientY - rect.top - radius}px`;
+
+      button.appendChild(circle);
+
+      // Remove ripple element after animation finishes
+      setTimeout(() => {
+        circle.remove();
+      }, 650);
+    }
+
+    // Attach ripple to all buttons with .btn class and clear button
+    document.querySelectorAll('.btn, .btn-clear, .thumb-play-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', createRipple);
+    });
+
+    // ==========================================================================
+    // 4. TYPING ANIMATION ON THE HEADING
+    // ==========================================================================
+    (function initTypewriter() {
+      const targetElement = document.getElementById('typewriterText');
+      if (!targetElement) return;
+
+      const phrases = [
+        'Without Watermark',
+        'In Ultra HD 1080p',
+        'Direct MP4 Download',
+        'Audio MP3 Extract',
+        '100% Free & Fast'
+      ];
+
+      let phraseIndex = 0;
+      let charIndex = phrases[0].length; // start with first phrase full
+      let isDeleting = false;
+      let typingSpeed = 90;
+
+      function typeLoop() {
+        const currentPhrase = phrases[phraseIndex];
+
+        if (isDeleting) {
+          // Deleting characters
+          charIndex--;
+          targetElement.textContent = currentPhrase.substring(0, charIndex);
+          typingSpeed = 45;
+        } else {
+          // Adding characters
+          charIndex++;
+          targetElement.textContent = currentPhrase.substring(0, charIndex);
+          typingSpeed = 95;
+        }
+
+        // When full phrase typed
+        if (!isDeleting && charIndex === currentPhrase.length) {
+          typingSpeed = 2200; // Pause before deleting
+          isDeleting = true;
+        } else if (isDeleting && charIndex === 0) {
+          isDeleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          typingSpeed = 350; // Pause before typing new phrase
+        }
+
+        setTimeout(typeLoop, typingSpeed);
+      }
+
+      // Initial delay before first deletion
+      setTimeout(() => {
+        isDeleting = true;
+        typeLoop();
+      }, 2500);
+    })();
+
+    // ==========================================================================
+    // 5. 3D TILT EFFECT ON RESULT CARD (MOUSEMOVE)
+    // ==========================================================================
+    (function init3DTilt() {
+      if (!resultCard) return;
+
+      let tiltFrame = null;
+
+      function handleMouseMove(e) {
+        if (window.innerWidth <= 768) return; // Disable on small screens
+
+        if (tiltFrame) cancelAnimationFrame(tiltFrame);
+
+        tiltFrame = requestAnimationFrame(() => {
+          const rect = resultCard.getBoundingClientRect();
+          const cardX = e.clientX - rect.left;
+          const cardY = e.clientY - rect.top;
+
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+
+          // Compute tilt angles (max +/- 10 degrees)
+          const rotateX = ((cardY - centerY) / centerY) * -10;
+          const rotateY = ((cardX - centerX) / centerX) * 10;
+
+          resultCard.style.transform = `perspective(1100px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.015, 1.015, 1.015)`;
+          resultCard.style.boxShadow = `0 25px 60px rgba(0, 0, 0, 0.75), ${-rotateY * 2}px ${rotateX * 2}px 35px rgba(0, 240, 255, 0.25)`;
+
+          // Move the sheen highlight to follow the mouse
+          if (resultCardSheen) {
+            resultCardSheen.style.opacity = '1';
+            resultCardSheen.style.background = `radial-gradient(circle at ${cardX}px ${cardY}px, rgba(255, 255, 255, 0.12) 0%, rgba(0, 240, 255, 0.05) 40%, transparent 70%)`;
+          }
+        });
+      }
+
+      function handleMouseLeave() {
+        if (tiltFrame) cancelAnimationFrame(tiltFrame);
+        resultCard.style.transform = 'perspective(1100px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        resultCard.style.boxShadow = '0 20px 50px rgba(0, 0, 0, 0.65), 0 0 35px rgba(0, 240, 255, 0.18)';
+        if (resultCardSheen) {
+          resultCardSheen.style.opacity = '0';
+        }
+      }
+
+      resultCard.addEventListener('mousemove', handleMouseMove);
+      resultCard.addEventListener('mouseleave', handleMouseLeave);
+    })();
+
+    // ==========================================================================
+    // 6. GENERAL HELPERS & NOTIFICATIONS
+    // ==========================================================================
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      toastMessage.textContent = msg;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      errorContainer.style.display = 'block';
+      resultContainer.style.display = 'none';
+      loaderContainer.style.display = 'none';
+    }
+
+    function hideError() {
+      errorContainer.style.display = 'none';
+    }
+
+    function cleanTikTokUrl(input) {
+      if (!input) return '';
+      const trimmed = input.trim();
+      const urlMatch = trimmed.match(/https?:\/\/(?:www\.|vm\.|vt\.|m\.)?tiktok\.com\/[^\s]+/i);
+      if (urlMatch) {
+        return urlMatch[0];
+      }
+      return trimmed;
+    }
+
+    function isValidTikTokUrl(url) {
+      return /tiktok\.com/i.test(url);
+    }
+
+    function formatCount(num) {
+      if (!num || isNaN(num)) return '0';
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    function resolveMediaUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('/')) {
+        return 'https://tikwm.com' + url;
+      }
+      return url;
+    }
+
+    /**
+     * Trigger browser download safely with blob or direct link
+     */
+    async function triggerDirectDownload(url, filename) {
+      showToast('Starting download...');
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Blob fetch failed');
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
+      } catch (e) {
+        // Fallback: direct window anchor trigger
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    }
+
+    // ==========================================================================
+    // 7. API FETCH LOGIC (TIKWM WITH CORS PROXY FALLBACK)
+    // ==========================================================================
+    async function fetchTikTokVideo(targetUrl) {
+      const cleanUrl = cleanTikTokUrl(targetUrl);
+      const directEndpoint = `https://tikwm.com/api/?url=${encodeURIComponent(cleanUrl)}`;
+      const proxyEndpoint = `https://corsproxy.io/?url=${encodeURIComponent(directEndpoint)}`;
+      const allOriginsEndpoint = `https://api.allorigins.win/raw?url=${encodeURIComponent(directEndpoint)}`;
+
+      let lastError = null;
+
+      // 1. Try Direct API
+      try {
+        const response = await fetch(directEndpoint, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (response.ok) {
+          const json = await response.json();
+          if (json && json.code === 0 && json.data) {
+            return json.data;
+          } else if (json && json.msg) {
+            throw new Error(json.msg);
+          }
+        }
+      } catch (err) {
+        console.warn('Direct API attempt failed, trying corsproxy fallback:', err);
+        lastError = err;
+      }
+
+      // 2. Try corsproxy.io
+      try {
+        const response = await fetch(proxyEndpoint, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (response.ok) {
+          const json = await response.json();
+          if (json && json.code === 0 && json.data) {
+            return json.data;
+          } else if (json && json.msg) {
+            throw new Error(json.msg);
+          }
+        }
+      } catch (err) {
+        console.warn('corsproxy.io attempt failed, trying secondary fallback:', err);
+        lastError = err;
+      }
+
+      // 3. Try allorigins proxy fallback
+      try {
+        const response = await fetch(allOriginsEndpoint, { method: 'GET' });
+        if (response.ok) {
+          const json = await response.json();
+          if (json && json.code === 0 && json.data) {
+            return json.data;
+          } else if (json && json.msg) {
+            throw new Error(json.msg);
+          }
+        }
+      } catch (err) {
+        console.warn('AllOrigins fallback failed:', err);
+        lastError = err;
+      }
+
+      throw lastError || new Error('Could not retrieve video. Please make sure the video is public and try again.');
+    }
+
+    // ==========================================================================
+    // 8. PROCESS URL & RENDER
+    // ==========================================================================
+    async function handleDownloadProcess() {
+      hideError();
+      const rawInput = urlInput.value;
+      const cleanUrl = cleanTikTokUrl(rawInput);
+
+      if (!cleanUrl) {
+        showError('Please paste a TikTok video link first.');
+        urlInput.focus();
+        return;
+      }
+
+      if (!isValidTikTokUrl(cleanUrl)) {
+        showError('Invalid URL! Link must be from tiktok.com (e.g., https://www.tiktok.com/@user/video/...)');
+        return;
+      }
+
+      // Show loader, hide result
+      resultContainer.style.display = 'none';
+      loaderContainer.style.display = 'flex';
+      downloadBtn.disabled = true;
+
+      try {
+        const data = await fetchTikTokVideo(cleanUrl);
+        currentVideoData = data;
+        renderResult(data);
+      } catch (error) {
+        console.error('Download error:', error);
+        showError(error.message || 'Failed to fetch video. Please check your link or try again.');
+      } finally {
+        loaderContainer.style.display = 'none';
+        downloadBtn.disabled = false;
+      }
+    }
+
+    function renderResult(data) {
+      const hdUrl = resolveMediaUrl(data.hdplay || data.play);
+      const sdUrl = resolveMediaUrl(data.play);
+      const audioUrl = resolveMediaUrl(data.music || (data.music_info && data.music_info.play));
+      const coverUrl = resolveMediaUrl(data.cover);
+
+      // Thumbnail
+      resultThumb.src = coverUrl;
+
+      // Author details
+      const author = data.author || {};
+      resultAuthorAvatar.src = resolveMediaUrl(author.avatar) || 'https://via.placeholder.com/80?text=User';
+      resultAuthorNick.textContent = author.nickname || 'TikTok User';
+      resultAuthorHandle.textContent = `@${author.unique_id || 'creator'}`;
+
+      // Title
+      resultTitle.textContent = data.title || 'TikTok Video (No description)';
+
+      // Stats
+      statViews.textContent = formatCount(data.play_count) + ' views';
+      statLikes.textContent = formatCount(data.digg_count) + ' likes';
+      statComments.textContent = formatCount(data.comment_count) + ' comments';
+
+      // Download Buttons configuration
+      const filenameBase = (author.unique_id ? `@${author.unique_id}_` : 'tiktok_') + (data.id || Date.now());
+
+      btnDownloadHd.href = hdUrl;
+      btnDownloadHd.download = `${filenameBase}_HD_no_watermark.mp4`;
+
+      btnDownloadSd.href = sdUrl;
+      btnDownloadSd.download = `${filenameBase}_SD.mp4`;
+
+      if (audioUrl) {
+        btnDownloadAudio.href = audioUrl;
+        btnDownloadAudio.download = `${filenameBase}_audio.mp3`;
+        btnDownloadAudio.style.display = 'inline-flex';
+      } else {
+        btnDownloadAudio.style.display = 'none';
+      }
+
+      // Configure direct download triggers
+      btnDownloadHd.onclick = (e) => {
+        e.preventDefault();
+        triggerDirectDownload(hdUrl, `${filenameBase}_HD_no_watermark.mp4`);
+      };
+
+      btnDownloadSd.onclick = (e) => {
+        e.preventDefault();
+        triggerDirectDownload(sdUrl, `${filenameBase}_SD.mp4`);
+      };
+
+      if (audioUrl) {
+        btnDownloadAudio.onclick = (e) => {
+          e.preventDefault();
+          triggerDirectDownload(audioUrl, `${filenameBase}_audio.mp3`);
+        };
+      }
+
+      // Show Result Card with smooth scroll
+      resultContainer.style.display = 'block';
+      resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // ==========================================================================
+    // 9. EVENT LISTENERS
+    // ==========================================================================
+
+    downloadBtn.addEventListener('click', handleDownloadProcess);
+
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleDownloadProcess();
+      }
+    });
+
+    urlInput.addEventListener('input', () => {
+      clearBtn.style.display = urlInput.value.length > 0 ? 'inline-flex' : 'none';
+      if (errorContainer.style.display === 'block') {
+        hideError();
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      urlInput.value = '';
+      clearBtn.style.display = 'none';
+      urlInput.focus();
+    });
+
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+          throw new Error('Clipboard API unavailable');
+        }
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          urlInput.value = text;
+          clearBtn.style.display = 'inline-flex';
+          showToast('Link pasted from clipboard!');
+          if (isValidTikTokUrl(text)) {
+            handleDownloadProcess();
+          }
+        } else {
+          showToast('Clipboard is empty');
+        }
+      } catch (err) {
+        const manual = prompt('Paste your TikTok video link here:');
+        if (manual) {
+          urlInput.value = manual;
+          clearBtn.style.display = 'inline-flex';
+          handleDownloadProcess();
+        }
+      }
+    });
+
+    btnCopyDirectLink.addEventListener('click', async () => {
+      if (!currentVideoData) return;
+      const directVideoUrl = resolveMediaUrl(currentVideoData.hdplay || currentVideoData.play);
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(directVideoUrl);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = directVideoUrl;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        }
+        showToast('Direct video link copied!');
+      } catch (e) {
+        showToast('Failed to copy link');
+      }
+    });
+
+    playPreviewBtn.addEventListener('click', () => {
+      if (!currentVideoData) return;
+      const previewUrl = resolveMediaUrl(currentVideoData.play || currentVideoData.hdplay);
+      modalVideoPlayer.src = previewUrl;
+      previewModal.style.display = 'flex';
+      modalVideoPlayer.play().catch(() => {});
+    });
+
+    function closePreview() {
+      modalVideoPlayer.pause();
+      modalVideoPlayer.src = '';
+      previewModal.style.display = 'none';
+    }
+
+    previewCloseBtn.addEventListener('click', closePreview);
+    previewModal.addEventListener('click', (e) => {
+      if (e.target === previewModal) {
+        closePreview();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && previewModal.style.display === 'flex') {
+        closePreview();
+      }
+    });
+  </script>
+</body>
+</html>
